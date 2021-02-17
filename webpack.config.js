@@ -1,48 +1,77 @@
 const path = require("path");
-const webpack = require("webpack");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
+const CopyWebpackPlugin = require("copy-webpack-plugin");
 const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+const OptimizeCssAssetsWebpackPlugin = require("optimize-css-assets-webpack-plugin");
+const TerserWebpackPlugin = require("terser-webpack-plugin");
 const ESLintPlugin = require("eslint-webpack-plugin");
 
+const isDevelopment = process.env.NODE_ENV === "development";
+const isProduction = !isDevelopment;
+
+const optimization = () => {
+    const config = {
+        splitChunks: {
+            chunks: "all"
+        }
+    };
+
+    if (isProduction) {
+        config.minimizer = [new OptimizeCssAssetsWebpackPlugin(), new TerserWebpackPlugin()];
+    }
+
+    return config;
+};
+
+const fileName = (ext) => (isDevelopment ? `[name].${ext}` : `[name].[hash].${ext}`);
+
 module.exports = {
+    context: path.resolve(__dirname, "src"),
+    mode: "development",
     entry: {
-        main: path.resolve(__dirname, "./src/index.ts")
+        main: ["./index.tsx"]
     },
     output: {
-        path: path.resolve(__dirname, "./dist"),
-        filename: "[name].js"
+        path: path.resolve(__dirname, "dist"),
+        filename: fileName("js")
     },
-
-    devtool: "source-map",
-
     resolve: {
-        extensions: [".webpack.js", ".web.js", ".ts", ".tsx", ".js"]
+        extensions: [".js", ".jsx", ".ts", ".tsx", ".json"],
+        alias: {
+            "@models": path.resolve(__dirname, "src/models")
+        }
     },
-
-    mode: "development",
+    optimization: optimization(),
     devServer: {
-        historyApiFallback: true,
-        contentBase: path.resolve(__dirname, "./dist"),
-        open: true,
-        compress: true,
-        hot: true,
-        port: 3000,
-        stats: "errors-only"
+        port: 3000
     },
+    devtool: "inline-source-map",
 
     plugins: [
         new HtmlWebpackPlugin({
-            title: "webpack Boilerplate",
             template: path.resolve(__dirname, "./src/index.html"),
-            filename: "index.html"
+            filename: "index.html",
+            minify: {
+                collapseWhitespace: isProduction,
+                removeComments: isProduction
+            }
         }),
 
         new CleanWebpackPlugin(),
 
-        new MiniCssExtractPlugin(),
+        new CopyWebpackPlugin({
+            patterns: [
+                {
+                    from: path.resolve(__dirname, "public/assets/favicon.ico"),
+                    to: path.resolve(__dirname, "dist")
+                }
+            ]
+        }),
 
-        new webpack.HotModuleReplacementPlugin(),
+        new MiniCssExtractPlugin({
+            filename: fileName("css")
+        }),
 
         new ESLintPlugin()
     ],
@@ -50,25 +79,10 @@ module.exports = {
     module: {
         rules: [
             {
-                test: /\.tsx$/,
-                exclude: /node-modules/,
-
-                loader: "ts-loader"
-            },
-
-            {
-                test: /\.js$/,
-                exclude: [/node_modules/],
+                test: /\.(js|jsx|ts|tsx)$/,
+                exclude: /node_modules/,
                 use: {
-                    loader: "babel-loader",
-                    options: {
-                        presets: ["@babel/preset-env"],
-                        plugins: [
-                            "@babel/plugin-proposal-class-properties",
-                            "@babel/plugin-proposal-optional-chaining",
-                            "@babel/transform-runtime"
-                        ]
-                    }
+                    loader: "babel-loader"
                 }
             },
             {
@@ -96,11 +110,11 @@ module.exports = {
             },
             {
                 test: /\.(?:ico|gif|png|jpg|jpeg)$/i,
-                type: "asset/resource"
+                use: ["file-loader"]
             },
             {
                 test: /\.(woff(2)?|eot|ttf|otf|svg|)$/,
-                type: "asset/fonts"
+                use: ["file-loader"]
             }
         ]
     }
