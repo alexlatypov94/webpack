@@ -1,11 +1,30 @@
 {
     "compilerOptions": {
-      "outDir": "./dist",
+      "baseUrl": "./",
+      "outDir": "./dist/",
+      "declaration": false,
+      "downlevelIteration": true,
+      "experimentalDecorators": true,
+      "resolveJsonModule": true,
+      "module": "commonjs",
+      "moduleResolution": "node",
+      "importHelpers": true,
+      "allowSyntheticDefaultImports": true,
+      "esModuleInterop": true,
+      "target": "es2015",
+      "typeRoots": ["node_modules/@types"],
+      "lib": ["es2018", "dom"],
+      "sourceMap": true,
       "allowJs": true,
-      "target": "es5"
+      "jsx": "react",
+      "rootDir": "src",
+      "noImplicitReturns": true,
+      "noImplicitThis": true,
+      "noImplicitAny": true,
+      "strictNullChecks": true
     },
-    "include": ["./src/**/*"],
-    "exclude": [
-        "node_modules"
+    "include": ["src/**/*.ts", "src/**/*.d.ts"],
+    "types": [
+      "typePatches"
     ]
   }

@@ -1,5 +1,3 @@
 module.exports = {
-    moduleNameMapper: {
-        "\\.(css|less|scss)$": "identity-obj-proxy"
-    }
-};
+    setupFiles: ["raf/polyfill", "<rootDir>/setupTests.js"]
+  };
